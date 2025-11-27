@@ -66,6 +66,10 @@ export const jsonToNetscape = (jsonString: string): string => {
 };
 
 export const netscapeToJson = (netscapeString: string): string => {
+  if (!netscapeString || !netscapeString.trim()) {
+    return '[]';
+  }
+
   const lines = netscapeString.split(/\r?\n/);
   const cookies: JsonCookie[] = [];
 
@@ -102,8 +106,9 @@ export const netscapeToJson = (netscapeString: string): string => {
     cookies.push(cookie);
   });
 
-  if (cookies.length === 0 && lines.length > 0 && !lines[0].startsWith('#')) {
-      throw new Error("Could not parse Netscape format. Ensure fields are tab-separated.");
+  if (cookies.length === 0 && lines.length > 0 && lines.some(l => l.trim() && !l.startsWith('#'))) {
+      // If lines exist but none were parsed (and aren't comments), it might be malformed
+      // We'll return empty array but Validation logic elsewhere catches this.
   }
 
   return JSON.stringify(cookies, null, 4);
@@ -155,7 +160,8 @@ export const validateCookies = (input: string, mode: ConversionMode): Validation
     // NETSCAPE_TO_JSON validation
     const lines = input.split('\n');
     let hasHeader = false;
-    
+    let dataLinesFound = false;
+
     lines.forEach((line, idx) => {
       const lineNum = idx + 1;
       const trimmed = line.trim();
@@ -167,6 +173,7 @@ export const validateCookies = (input: string, mode: ConversionMode): Validation
         return;
       }
 
+      dataLinesFound = true;
       const parts = line.split('\t');
       // If split by tab results in 1, maybe they pasted spaces?
       if (parts.length === 1 && line.includes(' ')) {
@@ -200,7 +207,7 @@ export const validateCookies = (input: string, mode: ConversionMode): Validation
       }
     });
 
-    if (!hasHeader && lines.length > 0) {
+    if (!hasHeader && dataLinesFound) {
       issues.push({ type: 'warning', message: 'Missing standard Netscape header (# Netscape HTTP Cookie File). Some tools may not recognize this file.' });
     }
   }
