@@ -1,0 +1,5 @@
+{
+  "name": "CookieFormat Converter",
+  "description": "A bidirectional converter between JSON cookies and Netscape HTTP Cookie File format, featuring file handling and instant validation.",
+  "requestFramePermissions": []
+}
