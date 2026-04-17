@@ -5,8 +5,9 @@ import {
 } from 'lucide-react';
 import { ValidationStatus } from './components/ValidationStatus';
 import { EditorPane } from './components/EditorPane';
-import { jsonToNetscape, netscapeToJson, validateCookies } from './services/cookieService';
+import { jsonToNetscape, netscapeToJson, validateCookies, getSiteNameFromCookies } from './services/cookieService';
 import { ValidationIssue } from './types';
+import { slugify, getBaseDomain } from './utils/stringUtils';
 
 const PLACEHOLDER_JSON = `[
     {
@@ -91,6 +92,10 @@ const App: React.FC = () => {
       setLastEditedSource(null);
   };
 
+  const domain = getSiteNameFromCookies(jsonVal);
+  const siteSlug = domain ? slugify(getBaseDomain(domain)) : '';
+  const baseFileName = siteSlug ? `cookies-${siteSlug}` : 'cookies';
+
   return (
     <div className="min-h-screen bg-slate-950 text-slate-200 p-4 md:p-8 flex flex-col items-center">
       
@@ -133,7 +138,7 @@ const App: React.FC = () => {
             onChange={handleJsonChange}
             placeholder={PLACEHOLDER_JSON}
             fileExtension=".json"
-            baseFileName="cookies"
+            baseFileName={baseFileName}
           />
 
           {/* Netscape Editor Pane */}
@@ -145,7 +150,7 @@ const App: React.FC = () => {
             onChange={handleNetscapeChange}
             placeholder={PLACEHOLDER_NETSCAPE}
             fileExtension=".txt"
-            baseFileName="cookies-netscape"
+            baseFileName={baseFileName}
           />
 
         </div>

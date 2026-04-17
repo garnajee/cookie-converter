@@ -214,3 +214,34 @@ export const validateCookies = (input: string, mode: ConversionMode): Validation
 
   return issues;
 };
+
+export const getSiteNameFromCookies = (jsonString: string): string => {
+  try {
+    const cookies: JsonCookie[] = JSON.parse(jsonString);
+    if (!Array.isArray(cookies) || cookies.length === 0) return '';
+    
+    // Count occurrences of each domain
+    const domainCounts: Record<string, number> = {};
+    cookies.forEach(c => {
+      if (c.domain) {
+        // Remove leading dot and take the main part of the domain
+        const domain = c.domain.replace(/^\./, '');
+        domainCounts[domain] = (domainCounts[domain] || 0) + 1;
+      }
+    });
+
+    // Get the most frequent domain
+    let maxCount = 0;
+    let mostFrequentDomain = '';
+    for (const [domain, count] of Object.entries(domainCounts)) {
+      if (count > maxCount) {
+        maxCount = count;
+        mostFrequentDomain = domain;
+      }
+    }
+
+    return mostFrequentDomain;
+  } catch {
+    return '';
+  }
+};
